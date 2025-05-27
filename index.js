@@ -13,8 +13,7 @@ app.post('/send-email', async (req, res) => {
   const data = {
     service_id: process.env.SERVICE_ID,
     template_id: process.env.TEMPLATE_ID,
-    user_id: process.env.PUBLIC_KEY,
-    accessToken: process.env.PRIVATE_KEY,
+    user_id: process.env.PUBLIC_KEY,  // đúng key gọi là user_id trong EmailJS API
     template_params: {
       to_email,
       humidity,
@@ -26,7 +25,7 @@ app.post('/send-email', async (req, res) => {
     res.status(200).json({ success: true, message: 'Email sent successfully' });
   } catch (error) {
     console.error('Error sending email:', error?.response?.data || error.message);
-    res.status(500).json({ success: false, message: 'Failed to send email' });
+    res.status(500).json({ success: false, message: 'Failed to send email', error: error?.response?.data || error.message });
   }
 });
 
