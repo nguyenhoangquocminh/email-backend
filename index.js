@@ -1,47 +1,49 @@
 const express = require('express');
 const cors = require('cors');
-const axios = require('axios');
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Cấu hình transporter Gmail SMTP
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USERNAME, // Gmail của bạn
+    pass: process.env.EMAIL_PASSWORD, // Mật khẩu app Gmail (App Password)
+  },
+});
+
 app.post('/send-email', async (req, res) => {
   const { to_email, humidity } = req.body;
 
-  const data = {
-    service_id: process.env.SERVICE_ID,
-    template_id: process.env.TEMPLATE_ID,
-    user_id: process.env.PUBLIC_KEY, 
-    template_params: {
-      to_email,
-      humidity,
-    },
+  const mailOptions = {
+    from: process.env.EMAIL_USERNAME,
+    to: to_email,
+    subject: 'Cảnh báo độ ẩm đất',
+    html: `<p>Xin chào,</p>
+           <p>Độ ẩm đất hiện tại là <strong>${humidity}</strong>%.</p>
+           <p>Vì độ ẩm thấp hơn 50%, bạn nên bật máy bơm để tưới cây.</p>
+           <p>Trân trọng,</p>
+           <p>Hệ thống cảnh báo độ ẩm</p>`,
   };
 
   try {
-    const response = await axios.post(
-      'https://api.emailjs.com/api/v1.0/email/send',
-      data,
-      { 
-        headers: { 
-          'Content-Type': 'application/json' 
-        } 
-      }
-  );
-    res.status(200).json({ success: true, message: 'Email sent successfully' });
+    await transporter.sendMail(mailOptions);
+    res.status(200).json({ success: true, message: 'Email đã gửi thành công' });
   } catch (error) {
-    console.error('Error sending email:', error?.response?.data || error.message);
-    res.status(500).json({ success: false, message: 'Failed to send email', error: error?.response?.data || error.message });
+    console.error('Lỗi gửi email:', error);
+    res.status(500).json({ success: false, message: 'Gửi email thất bại', error });
   }
 });
 
 app.get('/', (req, res) => {
-  res.send('EmailJS backend is running!');
+  res.send('Backend Nodemailer đang chạy!');
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`✅ Server is running on port ${PORT}`);
+  console.log(`Server đang chạy trên cổng ${PORT}`);
 });
