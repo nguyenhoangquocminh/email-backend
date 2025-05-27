@@ -13,7 +13,7 @@ app.post('/send-email', async (req, res) => {
   const data = {
     service_id: process.env.SERVICE_ID,
     template_id: process.env.TEMPLATE_ID,
-    user_id: process.env.PUBLIC_KEY,  // đúng key gọi là user_id trong EmailJS API
+    user_id: process.env.PUBLIC_KEY, 
     template_params: {
       to_email,
       humidity,
@@ -21,7 +21,15 @@ app.post('/send-email', async (req, res) => {
   };
 
   try {
-    const response = await axios.post('https://api.emailjs.com/api/v1.0/email/send', data);
+    const response = await axios.post(
+      'https://api.emailjs.com/api/v1.0/email/send',
+      data,
+      { 
+        headers: { 
+          'Content-Type': 'application/json' 
+        } 
+      }
+  );
     res.status(200).json({ success: true, message: 'Email sent successfully' });
   } catch (error) {
     console.error('Error sending email:', error?.response?.data || error.message);
